@@ -15,19 +15,22 @@ app = Flask(__name__)
 #configurer la base de données
 #DATABASE_URL = os.getenv("sqlite:///streaming.db")
 engine = create_engine("sqlite:///streaming.db")
+Song.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
 @app.route("/api/songs", methods=["GET"])
 def get_songs():
+    
     session = Session()
     result = session.query(Song).all()
+    print(result)
     liste_chansons=[]
     for chanson in result:
         liste_chansons.append({
             "id": chanson.id, 
-            "title": chanson.title,
-            "artist": chanson.artist, 
-            "album": chanson.album})
+            "title": chanson.Track,
+            "artist": chanson.Artist, 
+            "album": chanson.Album_Name})
     session.close()
     return jsonify(liste_chansons)
 
@@ -35,7 +38,7 @@ def get_songs():
 @app.route("/api/artists/<nom_artiste>", methods=["GET"])
 def get_artists(nom_artiste):
     session = Session()
-    result = session.query(Song).filter_by(artist=nom_artiste).all()
+    result = session.query(Song).filter(Song.Artist.ilike(f"%{nom_artiste}%")).all()
     if not result:
         return jsonify({"message": "Artiste non trouvé"}), 404
     
@@ -43,9 +46,9 @@ def get_artists(nom_artiste):
     for chanson in result:
         reponse.append({
             "id": chanson.id, 
-            "title": chanson.title,
-            "artist": chanson.artist, 
-            "album": chanson.album,
+            "title": chanson.Track,
+            "artist": chanson.Artist, 
+            "album": chanson.Album_Name,
             "nb_streams": chanson.Spotify_Streams})
     
     session.close()
@@ -59,13 +62,13 @@ def add_data():
         return jsonify({"message": "Aucune donnée fournie"}), 400
     
     try:
+        session = Session()
         nouvelle_chanson = Song(
             title=data["Track"],
             artist=data["Artist"],
             album=data["Album_Name"],
             Spotify_Streams=data["Spotify_Streams"]
         )
-        session = Session()
         session.add(nouvelle_chanson)
         session.commit()
         session.close()

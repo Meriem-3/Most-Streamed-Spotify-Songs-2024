@@ -16,11 +16,17 @@ def insert_to_db(csv_path, db_url="sqlite:///streaming.db"):
     
     # 3. Insertion sécurisée
     print("--- Étape 3 : Insertion des données dans la table 'songs' ---")
+
+    # création colonne id
+    df_cleaned['id'] = range(1, len(df_cleaned) + 1)
+
     # to_sql utilise l'ORM sous le capot, bloquant les injections SQL
     df_cleaned.to_sql(name='songs', con=engine, if_exists='replace', index=False)
     
     print(f"\n Succès : {len(df_cleaned)} morceaux ont été insérés dans la base de données !")
 
+
+
 if __name__ == "__main__":
-    FICHIER_CSV = "../data/Most Streamed Spotify Songs 2024.csv"
+    FICHIER_CSV = "./data/Most Streamed Spotify Songs 2024.csv"
     insert_to_db(FICHIER_CSV)

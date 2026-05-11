@@ -41,7 +41,9 @@ def clean_spotify_data(csv_path):
     # 5. Modification du type de la colone "Release Date" en datetime
     if 'Release Date' in df.columns:
         df['Release Date'] = pd.to_datetime(df['Release Date'], errors='coerce')
-     
+    
+    # mettre un underscore à la place des espaces dans les noms de colonnes
+    df.columns = [col.replace(' ', '_') for col in df.columns]
 
     print("Nettoyage OK")
     print(df.info())
