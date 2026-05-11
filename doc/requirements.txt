@@ -1,0 +1,11 @@
+flask
+sqlalchemy
+pandas
+python-dotenv //python -m pip install python-dotenv 
+bcrypt
+pyjwt
+streamlit
+plotly
+matplotlib
+seaborn
+requests
