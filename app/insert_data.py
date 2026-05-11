@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from app.data_processing import clean_spotify_data
+from data_processing import clean_spotify_data
 
 def insert_to_db(csv_path, db_url="sqlite:///streaming.db"):
     """
@@ -22,5 +22,5 @@ def insert_to_db(csv_path, db_url="sqlite:///streaming.db"):
     print(f"\n Succès : {len(df_cleaned)} morceaux ont été insérés dans la base de données !")
 
 if __name__ == "__main__":
-    FICHIER_CSV = "data/Most Streamed Spotify Songs 2024.csv"
+    FICHIER_CSV = "../data/Most Streamed Spotify Songs 2024.csv"
     insert_to_db(FICHIER_CSV)
