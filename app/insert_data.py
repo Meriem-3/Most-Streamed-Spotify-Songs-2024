@@ -28,5 +28,5 @@ def insert_to_db(csv_path, db_url="sqlite:///streaming.db"):
 
 
 if __name__ == "__main__":
-    FICHIER_CSV = "./data/Most Streamed Spotify Songs 2024.csv"
+    FICHIER_CSV = "./data/Most_Streamed_Spotify_Songs_2024.csv"
     insert_to_db(FICHIER_CSV)

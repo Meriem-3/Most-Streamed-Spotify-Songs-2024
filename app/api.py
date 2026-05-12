@@ -14,39 +14,40 @@ from auth import hash_password, verify_password, create_token, verify_token
 from errors import error_response
 from schemas import LoginSchema, DataQuerySchema, AddSongSchema
 
-load_dotenv()
+load_dotenv() #charge les variables de .env
 
 app = Flask(__name__)
+#active Swagger
 Swagger(app, template={"swagger": "2.0", "info": {"title": "Spotify API", "version": "1.0"}})
 
 # --- Base de données ---
 engine = create_engine("sqlite:///streaming.db")
-Song.metadata.create_all(engine)
+Song.metadata.create_all(engine) #création des tables si elles n'existent pas
 Session = sessionmaker(bind=engine)
 
-# --- Rate limiting ---
+# --- Rate limiting (limite les requêtes par @IP) ---
 limiter = Limiter(get_remote_address, app=app)
 
 
-# --- Décorateur JWT ---
+# --- Décorateur JWT (protège une route) ---
 def jwt_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         auth = request.headers.get("Authorization", "")
         token = auth.replace("Bearer ", "")
-        payload = verify_token(token)
-        if not payload:
+        payload = verify_token(token)#vérifie le token via auth.py
+        if not payload: #si token invalide
             return error_response("unauthorized", "Token invalide ou expiré", 401)
-        request.user = payload
+        request.user = payload #stocke le payload pour l'uliliser dans la route
         return f(*args, **kwargs)
     return wrapper
 
 
-# -----------------------------------------------------------------------
+
 # POST /api/login
-# -----------------------------------------------------------------------
+
 @app.route("/api/login", methods=["POST"])
-@limiter.limit("5 per minute")
+@limiter.limit("5 per minute") #pour brute force
 def login():
     """
     Authentification utilisateur
@@ -70,9 +71,10 @@ def login():
       429: description: Trop de tentatives
     """
     try:
+        #valide le login envoyé avec LoginSchema
         data = LoginSchema().load(request.get_json() or {})
     except ValidationError as e:
-        return error_response("validation_failed", e.messages, 422)
+        return error_response("validation_failed", e.messages, 422)#si la validation echoue
 
     # Ici tu vérifieras l'utilisateur en base quand tu auras un modèle User
     # Pour l'instant, retour d'exemple
