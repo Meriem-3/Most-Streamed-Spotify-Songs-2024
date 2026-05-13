@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from functools import wraps
 import os
 
-from models import Song
+from models import Song, User
 from auth import hash_password, verify_password, create_token, verify_token
 from errors import error_response
 from schemas import LoginSchema, DataQuerySchema, AddSongSchema
@@ -23,6 +23,7 @@ Swagger(app, template={"swagger": "2.0", "info": {"title": "Spotify API", "versi
 # --- Base de données ---
 engine = create_engine("sqlite:///streaming.db")
 Song.metadata.create_all(engine) #création des tables si elles n'existent pas
+User.metadata.create_all(engine) #Ajout Postman
 Session = sessionmaker(bind=engine)
 
 # --- Rate limiting (limite les requêtes par @IP) ---
@@ -70,7 +71,7 @@ def login():
       422: description: Validation échouée
       429: description: Trop de tentatives
     """
-    try:
+    """try:
         #valide le login envoyé avec LoginSchema
         data = LoginSchema().load(request.get_json() or {})
     except ValidationError as e:
@@ -79,6 +80,34 @@ def login():
     # Ici tu vérifieras l'utilisateur en base quand tu auras un modèle User
     # Pour l'instant, retour d'exemple
     return error_response("unauthorized", "Identifiants incorrects", 401)
+    """
+    #Ajout Postman
+    try:
+        data = LoginSchema().load(request.get_json() or {})
+    except ValidationError as e:
+        return error_response("validation_failed", e.messages, 422)
+
+    username = data["username"]
+    password = data["password"]
+
+    session = Session()
+
+    # Vérifier si l'utilisateur existe
+    user = session.query(User).filter_by(username=username).first()
+    if not user:
+        return error_response("unauthorized", "Utilisateur introuvable", 401)
+
+    # Vérifier le mot de passe
+    if not verify_password(password, user.password_hash):
+        return error_response("unauthorized", "Mot de passe incorrect", 401)
+
+    # Générer un token JWT
+    token = create_token(user.id)
+
+    return jsonify({
+        "message": "Connexion réussie",
+        "token": token
+    }), 200
 
 
 # -----------------------------------------------------------------------
@@ -267,6 +296,39 @@ def add_song():
 
     finally:
         session.close()
+
+
+#Ajout Postman
+@app.route("/api/register", methods=["POST"])
+def register():
+    try:
+        data = LoginSchema().load(request.get_json() or {})
+    except ValidationError as e:
+        return error_response("validation_failed", e.messages, 422)
+
+
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return error_response("validation_failed", "username et password requis", 400)
+
+    session = Session()
+
+    # Vérifier si l'utilisateur existe déjà
+    if session.query(User).filter_by(username=username).first():
+        return error_response("user_exists", "Utilisateur déjà existant", 400)
+
+    # Créer l'utilisateur
+    user = User(
+        username=username,
+        password_hash=hash_password(password)
+    )
+
+    session.add(user)
+    session.commit()
+
+    return jsonify({"message": "Utilisateur créé avec succès"}), 201
 
 
 if __name__ == "__main__":

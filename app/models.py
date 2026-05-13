@@ -33,6 +33,17 @@ class Song(Base):
     Shazam_Counts = Column(Float)
     Explicit_Track = Column(Integer)
 
+#rajout Postman
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+
+
+
+
 def init_db(db_url="sqlite:///streaming.db"):
     engine = create_engine(db_url)
     Base.metadata.create_all(engine)
