@@ -9,10 +9,10 @@ from sqlalchemy.orm import sessionmaker
 from functools import wraps
 import os
 
-from models import Song, User
-from auth import hash_password, verify_password, create_token, verify_token
-from errors import error_response
-from schemas import LoginSchema, DataQuerySchema, AddSongSchema
+from app.models import Song, User
+from app.auth import hash_password, verify_password, create_token, verify_token
+from app.errors import error_response
+from app.schemas import LoginSchema, DataQuerySchema, AddSongSchema
 
 load_dotenv() #charge les variables de .env
 

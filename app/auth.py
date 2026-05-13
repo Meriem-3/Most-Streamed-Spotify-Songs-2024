@@ -28,13 +28,13 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 # Création d'un token JWT
 
-def create_token(user_id: int) -> str:
+def create_token(user_id: int, expires_minutes=30) -> str:
 
     #Crée un token JWT contenant l'id utilisateur
     
     payload = {
         "user_id": user_id,
-        "exp": datetime.utcnow() + timedelta(hours=2)
+        "exp": datetime.utcnow() + timedelta(minutes=expires_minutes)
     }
 
     token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
